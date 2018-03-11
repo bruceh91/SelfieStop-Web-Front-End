@@ -7,8 +7,8 @@ import StopsMarkerList from './StopsMarkerList';
 const MyMapComponent = withScriptjs(withGoogleMap((props) =>
     <GoogleMap
         defaultZoom={14}
-        defaultCenter={{ lat: 33.5150, lng: -86.8000 }}>
-        {<Marker position={{ lat: 33.6000, lng: -86.8200 }} />}
+        defaultCenter={{ lat: props.lat, lng: props.lng }}>
+        {<Marker position={{ lat: props.lat, lng: props.lng }} />}
         {<StopsMarkerList markers={props}/>}
     </GoogleMap>
 ))

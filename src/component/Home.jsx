@@ -1,72 +1,145 @@
 import React, { Component } from 'react';
-import { render } from 'react-dom';
 import { Link } from 'react-router-dom';
-import MyMapComponent from './Map';
-
+import Search from './Search';
 
 class Home extends Component {
 
     constructor(props) {
-        super(props);
-
+        super(props)
         this.state = {
-            list: [],
-            centerLat: 33.5150,
-            centerLng: -86.8000
+            searchLat: 0,
+            searchLng: 0
         }
     }
 
-    async componentDidMount() {
-        await navigator.geolocation.getCurrentPosition((x) => {
-                    console.log(x);
-                    this.setState({centerLat: x.coords.latitude})
-                    this.setState({centerLng: x.coords.longitude})
-                    console.log(this.state.centerLat + '   2' + this.state.centerLng)
-                })
-        await fetch('http://localhost:3001/api/stops/web')
-            .then((response) => {
-                return response.json();
-            })
-            .then((responseJson) => {
-                this.setState({ list: responseJson });
+    componentDidMount() {
+        navigator.geolocation.getCurrentPosition(({ coords }) => {
+            this.setState({ searchLat: coords.latitude })
+            this.setState({ searchLng: coords.longitude })
 
-            })
-        await this.forceUpdate();
+            const map = new window.google.maps.Map(document.getElementById('map'), {
+                zoom: 16,
+                center: { lat: this.state.searchLat, lng: this.state.searchLng }
+            });
+
+            this.setState({ searchLat: coords.latitude, searchLng: coords.longitude })
+
+            const locMarker = new window.google.maps.Marker({
+                position: { lat: coords.latitude, lng: coords.longitude },
+                map: map,
+                icon: {
+                    url: 'https://s3.us-east-2.amazonaws.com/selfietester/assets/user.gif',
+                    anchor: new window.google.maps.Point(10, 45)
+                }
+
+            });
+
+            fetch('http://powerful-savannah-66747.herokuapp.com/api/stops')
+                .then(response => {
+                    return response.json()
+                }).then(data => {
+                    data.map((stop) => {
+                        let infoContent = `<div class='gm-info-div'> 
+                                                <h3 >${stop.name}</h3>
+                                                <img class="gm-info-image" src=${stop.imgurl} /> 
+                                                <br />
+                                                <button class="gm-info-btn" onClick="javascript:window.location.href='/details/${stop.id}'">click here to see more details</button>
+                                            </div>`
+                        const infowindow = new window.google.maps.InfoWindow({
+                            content: infoContent
+                        });
+                        const marker = new window.google.maps.Marker({
+                            position: { lat: stop.lat, lng: stop.lng },
+                            map: map,
+                            icon: {
+                                url: 'https://s3.us-east-2.amazonaws.com/selfietester/assets/stop_pin.png',
+                                anchor: new window.google.maps.Point(27, 57)
+                            }
+                        });
+
+                        let bool = false
+
+                        marker.addListener('click', () => {
+                            if (bool === false) {
+                                infowindow.open(map, marker);
+                                bool = true;
+                            } else {
+                                infowindow.close()
+                                bool = false;
+                            }
+                        })
+                        map.addListener('click', () => {
+                            infowindow.close();
+                            bool = false;
+                        })
+                    })
+                })
+        })
     }
 
-    // componentWillMount() {
-    //     navigator.geolocation.getCurrentPosition((x) => {
-    //         console.log(x)
-    //     })
-    // }
+    searchSubmit(x) {
+        this.setState({ searchLat: x.lat });
+        this.setState({ searchLng: x.lng})
+        console.log(`lat-- state  ${(this.state.searchLat)}`)
 
-    handleMarkerClick(props){
-        console.log(props + ' bobobobo');
+        const map = new window.google.maps.Map(document.getElementById('map'), {
+            zoom: 16,
+            center: { lat: this.state.searchLat, lng: this.state.searchLng }
+        });
+
+        fetch('http://powerful-savannah-66747.herokuapp.com/api/stops')
+                .then(response => {
+                    return response.json()
+                }).then(data => {
+                    data.map((stop) => {
+                        let infoContent = `<div class='gm-info-div'> 
+                                                <h3 >${stop.name}</h3>
+                                                <img class="gm-info-image" src=${stop.imgurl} /> 
+                                                <br />
+                                                <button class="gm-info-btn" onClick="javascript:window.location.href='/details/${stop.id}'">click here to see more details</button>
+                                            </div>`
+                        const infowindow = new window.google.maps.InfoWindow({
+                            content: infoContent
+                        });
+                        const marker = new window.google.maps.Marker({
+                            position: { lat: stop.lat, lng: stop.lng },
+                            map: map,
+                            icon: {
+                                url: 'https://s3.us-east-2.amazonaws.com/selfietester/assets/stop_pin.png',
+                                anchor: new window.google.maps.Point(27, 57)
+                            }
+                        });
+
+                        let bool = false
+
+                        marker.addListener('click', () => {
+                            if (bool === false) {
+                                infowindow.open(map, marker);
+                                bool = true;
+                            } else {
+                                infowindow.close()
+                                bool = false;
+                            }
+                        })
+                        map.addListener('click', () => {
+                            infowindow.close();
+                            bool = false;
+                        })
+                    })
+                })
+        // gMap = new google.maps.Map(document.getElementById('map'));
+        // gMap.setZoom(13);      // This will trigger a zoom_changed on the map
+        // gMap.setCenter(new google.maps.LatLng(37.4419, -122.1419));
     }
 
     render() {
-        return <div>
-            <h5 className="text-danger text-center">Birmingham, AL</h5>
-            <MyMapComponent 
-                stops={this.state.list}
-                function={this.handleMarkerClick.bind(this)}
-                lat={this.state.centerLat}
-                lng={this.state.centerLng}
-                googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyC02n3c0MkUtJa9-aJqcgcXiCREmJp54ig"
-                loadingElement={<div style={{ height: `100%` }} />}
-                containerElement={<div style={{ height: `400px` }} />}
-                mapElement={<div style={{ height: `100%` }} />}
-            />
-            {this.state.list.slice().reverse().map((x) => {
-                return (
-                    <div className="border col-5 mx-auto mb-2" key={x.id}>
-                        <h2 className="text-center">{x.name}</h2>
-                        <h5 className="text-center ">{x.description}</h5>
-                        <Link className="text-center text-wrap" to={`/blog/${x.id}`}><p>more info</p></Link>
-                    </div>
-                )
-            })}
-        </div>
+        return (
+            <div>
+                <Search submit={this.searchSubmit.bind(this)} />
+                <div id="map">
+                </div>
+
+            </div>)
     }
 }
 

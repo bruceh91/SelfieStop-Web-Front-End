@@ -1,8 +1,14 @@
 import React, { Component, Fragment } from 'react';
-import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import './css/App.css';
 
 import Home from './Home';
+import Browse from './Browse';
+import NavBar from './NavBar';
+import Contact from './Contact';
+import Details from './Details';
+import Search from './Search';
+
 
 
 class Navigation extends Component {
@@ -11,19 +17,14 @@ class Navigation extends Component {
       return (
           <Router>
               <Fragment>
-                  <h1>Selfie Stop</h1>
-                  {/* <Navbar /> */}
+                  <NavBar />
                   <Switch>
                       <Route exact path="/" component={Home} />
-                      {/* <Route path="/login" component={Login} />
-                      <Route path="/logout" component={Logout} />
-                      <Route path="/blog/:id?" component={Blog} />
-                      <Route path="/donate" component={Donate} />
-                      <Route path="/thanks" component={Thank} />
-                      <Route path='/contact' component={Contact} /> */}
-                      {/* <PrivateRoute path="/admin/home" component={Admin} />
-                      <PrivateRoute path="/admin/createPost" component={Create} />
-                      <PrivateRoute path="/admin/edit/:id" component={Edit} /> */}
+                      <Route path='/browse' component={Browse} />
+                      <Route path='/contact' component={Contact} />
+                      <Route path='/details/:id' component={Details} />
+                      <Route path='/search/:id' component={Search} />
+
                   </Switch>
               </Fragment>
           </Router>
